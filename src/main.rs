@@ -3,6 +3,8 @@ use std::collections::HashSet;
 use std::io;
 mod game;
 use crate::game::Game;
+mod wins;
+use wins::*;
 use crate::game::MyError;
 use plotters::prelude::*;
 extern crate plotters;
@@ -80,51 +82,6 @@ fn top_appearances(games: &Vec<Game>, teams: &HashSet<String>, seasons: &Vec<usi
     top_app
 }
 
-fn home_pct(games: &Vec<Game>, season: usize) -> f64 {
-    // calculates the percentage of games in a season where the home team won.
-    let mut home_win = 0;
-    let mut game_count = 0;
-    for game in games {
-        if season == game.season {
-            if game.result == "H" {
-                home_win += 1;
-            }
-            game_count += 1;
-        }
-    }
-    return (home_win as f64)/(game_count as f64) * 100.0;
-}
-
-fn draw_pct(games: &Vec<Game>, season: usize) -> f64 {
-    // calculates the percentage of games in a season that ended in a draw.
-    let mut draw = 0;
-    let mut game_count = 0;
-    for game in games {
-        if season == game.season {
-            if game.result == "D" {
-                draw += 1;
-            }
-            game_count += 1;
-        }
-    }
-    return (draw as f64)/(game_count as f64) * 100.0;
-}
-
-fn away_pct(games: &Vec<Game>, season: usize) -> f64 {
-    // calculates the percentage of games in a season where the away team won.
-    let mut away_win = 0;
-    let mut game_count = 0;
-    for game in games {
-        if season == game.season {
-            if game.result == "A" {
-                away_win += 1;
-            }
-            game_count += 1;
-        }
-    }
-    return (away_win as f64)/(game_count as f64) * 100.0;
-}
-
 fn goal_avg(games: &Vec<Game>, season: usize) -> f64 {
     // calculates the average number of goals scored per game in a season.
     let mut goal_total = 0;
@@ -182,9 +139,9 @@ fn user_choice(games: &Vec<Game>, all_seasons: &Vec<usize>, all_teams: &HashSet<
     println!("Enter a starting season from 1993 to 2023: ");
     io::stdin().read_line(&mut season_start_input_string).expect("Failed to read line");
     season_start_input_string = season_start_input_string.trim().to_string();
-    let season_start_input = match season_start_input_string.parse::<usize>() {
+    let season_start_input = match season_start_input_string.parse::<usize>() { // ensure that input is a valid digit
         Ok(input) => input,
-        Err(error) => {
+        Err(_) => {
             println!("Enter a valid season in digits.");
             return Err(Box::new(MyError("There was an error".to_string())));
         },
@@ -195,7 +152,7 @@ fn user_choice(games: &Vec<Game>, all_seasons: &Vec<usize>, all_teams: &HashSet<
     season_end_input_string = season_end_input_string.trim().to_string();
     let season_end_input = match season_end_input_string.parse::<usize>() {
         Ok(input) => input,
-        Err(error) => {
+        Err(_) => {
             println!("Enter a valid season in digits.");
             return Err(Box::new(MyError("There was an error".to_string())));
         },
@@ -247,7 +204,7 @@ fn main() {
     for game in games.iter() {
         all_teams.insert(game.home.clone());
     }
-    let rankings = 10;
+    let rankings = 10; // get the top 10 in both success categories
     println!("Over {} seasons, a total of {} teams have competed in the Premier League.", all_seasons.len(), all_teams.len());
     let top10_pct = top_percent(&games, &all_teams, rankings, &all_seasons);
     println!();
@@ -261,11 +218,12 @@ fn main() {
     for (i, (team, season_apps)) in top10_app.iter().enumerate() {
         println!("{}: {} with {} total seasons in the PL", (i+1), team, season_apps)
     }
+
     let mut home_advantages: Vec<(usize, f64)> = Vec::new();
     let mut avg_home = 0.0;
     let mut avg_away = 0.0;
     for szn in &all_seasons {
-        home_advantages.push((*szn, home_pct(&games, *szn)));
+        home_advantages.push((*szn, home_pct(&games, *szn))); // collect each season's average home win rate
         avg_home += home_pct(&games, *szn);
         avg_away += away_pct(&games, *szn);
     }
@@ -282,13 +240,13 @@ fn main() {
             diff = worst_adv - adv;
             worst_adv = *adv;
             second_worst_szn = worst_szn;
-            worst_szn = *szn
+            worst_szn = *szn // season with least amount of home advantage (difference between home and away win rate)
         }
     }
     let mut x_values: [f64; 31] = [1993.0; 31];
     for i in 0..31 {
         x_values[i] += i as f64;
-    }
+    } // update array in place so each x value is a season
     let drawing_area = BitMapBackend::new("all_time_rates.png", (640, 480)).into_drawing_area();
     drawing_area.fill(&WHITE).unwrap();
     let mut chart_builder = ChartBuilder::on(&drawing_area)
@@ -298,9 +256,9 @@ fn main() {
         .margin(10).set_left_and_bottom_label_area_size(20)
         .build_cartesian_2d(1993.0..2023.0, 10.0..60.0).unwrap();
     chart_builder.configure_mesh().draw().unwrap();
-    chart_builder.draw_series(LineSeries::new(x_values.map(|x | (x, home_pct(&games, x as usize))), BLACK)).unwrap()
+    chart_builder.draw_series(LineSeries::new(x_values.map(|x | (x, home_pct(&games, x as usize))), BLACK)).unwrap() // for each season, compute the home win rate
         .label("Home win rate")
-        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &BLACK));
+        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &BLACK)); // add legend
     chart_builder.draw_series(LineSeries::new(x_values.map(|x | (x, away_pct(&games, x as usize))), RED)).unwrap()
         .label("Away win rate")
         .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &RED));
