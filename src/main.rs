@@ -259,7 +259,7 @@ fn main() {
     chart_builder.draw_series(LineSeries::new(x_values.map(|x | (x, home_pct(&games, x as usize))), BLACK)).unwrap() // for each season, compute the home win rate
         .label("Home win rate")
         .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &BLACK)); // add legend
-    chart_builder.draw_series(LineSeries::new(x_values.map(|x | (x, away_pct(&games, x as usize))), RED)).unwrap()
+    chart_builder.draw_series(LineSeries::new(x_values.map(|x | (x, away_pct(&games, x as usize))), RED)).unwrap() // compute home, win, and away rate separately
         .label("Away win rate")
         .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &RED));
     chart_builder.draw_series(LineSeries::new(x_values.map(|x | (x, draw_pct(&games, x as usize))), BLUE)).unwrap()
@@ -294,7 +294,7 @@ fn main() {
             most_goals = *goals;
         }
     }
-    let drawing_area = BitMapBackend::new("goal_averages.png", (640, 480)).into_drawing_area();
+    let drawing_area = BitMapBackend::new("goal_averages.png", (640, 480)).into_drawing_area(); // plot average goal trends year over year
     drawing_area.fill(&WHITE).unwrap();
     let mut chart_builder = ChartBuilder::on(&drawing_area)
         .set_label_area_size(LabelAreaPosition::Left, 40)
@@ -318,7 +318,7 @@ fn main() {
 }
 
 #[test]
-fn test_result_rates() {
+fn test_result_rates() { // test whether all the result rates add up to 100
     let mut df = game::DataFrame::new();
     let games = df.read_csv("pl_matches.csv").unwrap();
     let season = 2023;
@@ -329,7 +329,7 @@ fn test_result_rates() {
 }
 
 #[test]
-fn test_team_appearances() {
+fn test_team_appearances() { // test the season appearances with a team that appeared in every season
     let mut df = game::DataFrame::new();
     let games = df.read_csv("pl_matches.csv").unwrap();
     let manutd = String::from("Manchester Utd");
