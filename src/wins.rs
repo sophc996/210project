@@ -1,5 +1,7 @@
 use crate::Game;
 
+// a module containing functions that are used to compute result rates in a given season.
+
 pub fn home_pct(games: &Vec<Game>, season: usize) -> f64 {
     // calculates the percentage of games in a season where the home team won.
     let mut home_win = 0;

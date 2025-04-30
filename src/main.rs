@@ -250,12 +250,16 @@ fn main() {
     let drawing_area = BitMapBackend::new("all_time_rates.png", (640, 480)).into_drawing_area();
     drawing_area.fill(&WHITE).unwrap();
     let mut chart_builder = ChartBuilder::on(&drawing_area)
-        .set_label_area_size(LabelAreaPosition::Left, 40)
-        .set_label_area_size(LabelAreaPosition::Bottom, 40)
+        .x_label_area_size(35)
+        .y_label_area_size(50)
         .caption("Home, Away, and Draw results - 1993-2023", ("sans-serif", 20).into_font())
-        .margin(10).set_left_and_bottom_label_area_size(20)
+        .margin(5)
         .build_cartesian_2d(1993.0..2023.0, 10.0..60.0).unwrap();
-    chart_builder.configure_mesh().draw().unwrap();
+    chart_builder.configure_mesh()
+        .y_desc("Result rates")
+        .x_desc("Season")
+        .axis_desc_style(("sans-serif", 15))
+        .draw().unwrap();
     chart_builder.draw_series(LineSeries::new(x_values.map(|x | (x, home_pct(&games, x as usize))), BLACK)).unwrap() // for each season, compute the home win rate
         .label("Home win rate")
         .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &BLACK)); // add legend
@@ -297,15 +301,19 @@ fn main() {
     let drawing_area = BitMapBackend::new("goal_averages.png", (640, 480)).into_drawing_area(); // plot average goal trends year over year
     drawing_area.fill(&WHITE).unwrap();
     let mut chart_builder = ChartBuilder::on(&drawing_area)
-        .set_label_area_size(LabelAreaPosition::Left, 40)
-        .set_label_area_size(LabelAreaPosition::Bottom, 40)
+        .x_label_area_size(35)
+        .y_label_area_size(50)
         .caption("Total goals per season - 1993-2023", ("sans-serif", 20).into_font())
-        .margin(10).set_left_and_bottom_label_area_size(20)
+        .margin(5)
         .build_cartesian_2d(1993.0..2023.0, 2.0..3.0).unwrap();
-    chart_builder.configure_mesh().draw().unwrap();
-    chart_builder.draw_series(LineSeries::new(x_values.map(|x | (x, goal_avg(&games, x as usize))), BLACK)).unwrap()
+    chart_builder.configure_mesh()
+        .y_desc("Average goals per game")
+        .x_desc("Season")
+        .axis_desc_style(("sans-serif", 15))
+        .draw().unwrap();
+    chart_builder.draw_series(LineSeries::new(x_values.map(|x | (x, goal_avg(&games, x as usize))), MAGENTA)).unwrap()
         .label("Average goals per game")
-        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &BLACK));
+        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &MAGENTA));
     chart_builder.configure_series_labels()
         .position(SeriesLabelPosition::LowerRight)
         .border_style(&BLACK)
